@@ -10,6 +10,10 @@ public class AntiGravityEngine : MonoBehaviour {
     [SerializeField]
     private float horizontalSpeed;
     [SerializeField]
+    private float downforce;
+    [SerializeField]
+    private float upforce;
+    [SerializeField]
     private float hoverHeight;
 
     private Vector3 idealPosition;
@@ -17,24 +21,22 @@ public class AntiGravityEngine : MonoBehaviour {
 
     void FixedUpdate()
     {
-    	float v = vertialForwardSpeed * Input.GetAxis("Vertical");
-        float h = horizontalSpeed * Input.GetAxis("Horizontal");
-
-        Vector3 movement = new Vector3(v,0,-h);
-        myRigidbody.AddRelativeForce(movement);
+    	Movement();
 
 		RaycastHit hit;
-		if (Physics.Raycast (transform.position, -transform.up, out hit, 100.0f)) {
-	    	idealPosition = transform.position + ((hoverHeight - hit.distance) * transform.up);
-		}
+		Physics.Raycast (transform.position, -transform.up, out hit, 100.0f);
 
-		if(hoverHeight > hit.distance)
+		if(hoverHeight < hit.distance)
 		{
-
+			Debug.Log("downforce");
+			myRigidbody.AddForce( - downforce * transform.up );
 		}
-	 
-		Vector3 pull = (idealPosition - transform.position);
-		myRigidbody.AddForce( pull );
+		else
+		{
+			Debug.Log("upforce");
+			//myRigidbody.AddForce( - downforce * transform.up /* ( hit.distance - hoverHeight)*/);
+			myRigidbody.AddForce( upforce * transform.up * ( hoverHeight - hit.distance ));
+		}
 
 		Debug.Log(hit.normal);
 		if(hit.point != lastPosition)
@@ -46,5 +48,14 @@ public class AntiGravityEngine : MonoBehaviour {
 		//transform.localEulerAngles = Vector3.Angle(hit.normal, -transform.up);
 		Debug.DrawRay(transform.position, -transform.up);
 		Debug.DrawRay(hit.point, hit.normal, Color.red);
+	}
+
+	private void Movement()
+	{
+		float v = vertialForwardSpeed * Input.GetAxis("Vertical");
+        float h = horizontalSpeed * Input.GetAxis("Horizontal");
+
+        Vector3 movement = new Vector3(v,0,-h);
+        myRigidbody.AddRelativeForce(movement);
 	}
 }
